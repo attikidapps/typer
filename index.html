@@ -3,144 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SYNTAX SURGE — Developer Combat Arena</title>
+    <meta name="description" content="Syntax Surge — Developer Combat Arena. Type code, fight bugs, master languages.">
+    <meta name="author" content="CodeX Elite Team">
+    <title>SYNTAX SURGE — Developer Combat</title>
     <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
-    <div class="crt-overlay"></div>
-    <div class="code-rain" id="codeRain"></div>
+    <!-- 3D Particle Background -->
+    <canvas id="particleCanvas"></canvas>
     
-    <div class="game-container">
-        <!-- Header: Developer Profile -->
+    <!-- Advanced CRT Overlay -->
+    <div class="crt-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="noise-overlay"></div>
+    
+    <!-- Neon Glow Effects -->
+    <div class="neon-gradient"></div>
+    
+    <!-- Main Game Container -->
+    <div class="game-container glass-morphism">
+        <!-- Header: Futuristic Dashboard -->
         <div class="game-header">
-            <div class="developer-info">
-                <span class="dev-icon">⚡</span>
-                <span class="dev-title">SYNTAX SURGE v1.0</span>
-                <span class="dev-terminal">~/developer/combat_arena</span>
+            <div class="logo-section">
+                <div class="logo-3d">
+                    <span class="logo-bracket">&lt;/&gt;</span>
+                    <span class="logo-text">SYNTAX SURGE</span>
+                    <span class="logo-bracket">\m/</span>
+                </div>
+                <div class="terminal-path">~/dev/combat_arena/v2.0</div>
             </div>
-            <div class="stats-panel">
-                <div class="stat">
-                    <span class="stat-label">WAVE</span>
-                    <span class="stat-value" id="waveNumber">0</span>
+            <div class="stats-panel neon-border">
+                <div class="stat holographic">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-info">
+                        <span class="stat-label">WAVE</span>
+                        <span class="stat-value" id="waveNumber">0</span>
+                    </div>
                 </div>
-                <div class="stat">
-                    <span class="stat-label">SCORE</span>
-                    <span class="stat-value" id="scoreValue">0</span>
+                <div class="stat-divider"></div>
+                <div class="stat holographic">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-info">
+                        <span class="stat-label">SCORE</span>
+                        <span class="stat-value" id="scoreValue">0</span>
+                    </div>
                 </div>
-                <div class="stat">
-                    <span class="stat-label">COMBO</span>
-                    <span class="stat-value" id="comboValue">0</span>
+                <div class="stat-divider"></div>
+                <div class="stat holographic">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-info">
+                        <span class="stat-label">COMBO</span>
+                        <span class="stat-value" id="comboValue">0</span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Health Bars -->
+        <!-- Dual Health System with 3D Bars -->
         <div class="health-section">
-            <div class="health-container">
-                <div class="health-label">PLAYER HP</div>
-                <div class="health-bar">
-                    <div class="health-fill player-health" id="playerHealth"></div>
+            <div class="health-card player-card">
+                <div class="health-header">
+                    <div class="health-icon">🛡️</div>
+                    <div class="health-title">DEVELOPER HP</div>
+                    <div class="health-value" id="playerHealthText">100</div>
                 </div>
-                <span class="health-number" id="playerHealthText">100</span>
+                <div class="health-bar-container">
+                    <div class="health-bar-glow"></div>
+                    <div class="health-bar">
+                        <div class="health-fill player-health" id="playerHealth">
+                            <div class="health-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="health-stats">
+                    <span>⚔️ ARMOR ACTIVE</span>
+                    <span>💪 100%</span>
+                </div>
             </div>
-            <div class="health-container">
-                <div class="health-label">BUG HP</div>
-                <div class="health-bar">
-                    <div class="health-fill bug-health" id="bugHealth"></div>
+            
+            <div class="vs-divider">
+                <div class="vs-circle">VS</div>
+                <div class="vs-pulse"></div>
+            </div>
+            
+            <div class="health-card enemy-card">
+                <div class="health-header">
+                    <div class="health-icon">🐛</div>
+                    <div class="health-title">BUG HP</div>
+                    <div class="health-value" id="bugHealthText">0</div>
                 </div>
-                <span class="health-number" id="bugHealthText">0</span>
+                <div class="health-bar-container">
+                    <div class="health-bar-glow enemy-glow"></div>
+                    <div class="health-bar">
+                        <div class="health-fill bug-health" id="bugHealth">
+                            <div class="health-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="health-stats">
+                    <span>⚠️ CORRUPTED</span>
+                    <span>💀 ACTIVE</span>
+                </div>
             </div>
         </div>
         
-        <!-- Active Bug Display -->
+        <!-- Bug Arena with Holographic Display -->
         <div class="bug-arena" id="bugArena">
-            <div class="bug-card" id="bugCard">
-                <div class="bug-icon" id="bugIcon">🐛</div>
+            <div class="hologram-border"></div>
+            <div class="bug-card">
+                <div class="bug-glow-ring"></div>
+                <div class="bug-icon-container">
+                    <div class="bug-icon" id="bugIcon">🐛</div>
+                    <div class="bug-particles" id="bugParticles"></div>
+                </div>
                 <div class="bug-name" id="bugName">Syntax Error</div>
-                <div class="bug-language" id="bugLanguage">JavaScript</div>
-                <div class="syntax-challenge" id="syntaxChallenge">
-                    <pre><code id="codeSnippet">// Type the correct syntax</code></pre>
+                <div class="bug-language" id="bugLanguage">
+                    <span class="lang-badge">JavaScript</span>
                 </div>
-                <div class="cast-bar-container">
-                    <div class="cast-bar" id="castBar"></div>
-                    <span class="cast-timer" id="castTimer">3.0s</span>
+                
+                <!-- Syntax Challenge with Code Highlighting -->
+                <div class="syntax-challenge">
+                    <div class="code-header">
+                        <div class="code-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <div class="code-title">CHALLENGE.md</div>
+                        <div class="code-copy">⚡</div>
+                    </div>
+                    <pre><code id="codeSnippet" class="language-javascript">// Type the exact syntax</code></pre>
+                </div>
+                
+                <!-- Cast Timer with Radial Progress -->
+                <div class="cast-container">
+                    <div class="cast-label">
+                        <span>⚡ CASTING</span>
+                        <span class="cast-timer" id="castTimer">3.0s</span>
+                    </div>
+                    <div class="cast-bar-wrapper">
+                        <div class="cast-bar-bg"></div>
+                        <div class="cast-bar-fill" id="castBar"></div>
+                        <div class="cast-glow"></div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Typing Arena -->
+        <!-- Typing Arena with Neon Input -->
         <div class="typing-arena">
-            <div class="input-container">
-                <span class="prompt">&gt;</span>
-                <input type="text" id="userInput" placeholder="Type the exact syntax..." autocomplete="off" disabled>
-                <button class="submit-btn" id="submitBtn">⚡ EXECUTE</button>
+            <div class="input-wrapper neon-input">
+                <div class="input-prompt">
+                    <span class="prompt-symbol">❯❯❯</span>
+                    <span class="prompt-cursor">_</span>
+                </div>
+                <input type="text" id="userInput" placeholder="Inject syntax..." autocomplete="off" disabled>
+                <button class="execute-btn" id="submitBtn">
+                    <span class="btn-text">EXECUTE</span>
+                    <span class="btn-icon">⚡</span>
+                </button>
             </div>
-            <div class="feedback" id="feedback"></div>
+            <div class="feedback-terminal" id="feedback">
+                <div class="terminal-line">> System ready</div>
+            </div>
         </div>
         
-        <!-- Power-Up Bar -->
-        <div class="powerup-bar" id="powerupBar">
-            <div class="powerup-slot" id="powerup1">
+        <!-- Power-Up Grid with 3D Cards -->
+        <div class="powerup-grid">
+            <div class="powerup-card" data-powerup="autoComplete" id="powerup1">
+                <div class="card-glow"></div>
                 <div class="powerup-icon">🔮</div>
-                <div class="powerup-name">Auto-Complete</div>
-                <div class="powerup-status" id="pu1Status">Ready</div>
+                <div class="powerup-name">AUTO-COMPLETE</div>
+                <div class="powerup-desc">Auto-fills syntax</div>
+                <div class="powerup-key">[1]</div>
+                <div class="powerup-status" id="pu1Status">Locked</div>
             </div>
-            <div class="powerup-slot" id="powerup2">
+            <div class="powerup-card" data-powerup="damageBoost" id="powerup2">
+                <div class="card-glow"></div>
                 <div class="powerup-icon">⚔️</div>
-                <div class="powerup-name">Damage Boost</div>
+                <div class="powerup-name">DAMAGE BOOST</div>
+                <div class="powerup-desc">2x damage output</div>
+                <div class="powerup-key">[2]</div>
                 <div class="powerup-status" id="pu2Status">Locked</div>
             </div>
-            <div class="powerup-slot" id="powerup3">
+            <div class="powerup-card" data-powerup="timeFreeze" id="powerup3">
+                <div class="card-glow"></div>
                 <div class="powerup-icon">⏰</div>
-                <div class="powerup-name">Time Freeze</div>
+                <div class="powerup-name">TIME FREEZE</div>
+                <div class="powerup-desc">Pause cast timer</div>
+                <div class="powerup-key">[3]</div>
                 <div class="powerup-status" id="pu3Status">Locked</div>
             </div>
-            <div class="powerup-slot" id="powerup4">
+            <div class="powerup-card" data-powerup="syntaxShield" id="powerup4">
+                <div class="card-glow"></div>
                 <div class="powerup-icon">🛡️</div>
-                <div class="powerup-name">Syntax Shield</div>
+                <div class="powerup-name">SYNTAX SHIELD</div>
+                <div class="powerup-desc">Damage immunity</div>
+                <div class="powerup-key">[4]</div>
                 <div class="powerup-status" id="pu4Status">Locked</div>
             </div>
         </div>
         
-        <!-- Wave Info & Controls -->
-        <div class="wave-info">
-            <div class="language-badge" id="currentLanguage">JavaScript</div>
-            <div class="wave-progress">
-                <span>Wave Progress</span>
-                <div class="wave-bar">
-                    <div class="wave-fill" id="waveFill"></div>
+        <!-- Wave Information Center -->
+        <div class="wave-center">
+            <div class="wave-info-card">
+                <div class="wave-left">
+                    <div class="current-language">
+                        <span class="lang-label">CURRENT ARENA</span>
+                        <span class="lang-name" id="currentLanguage">JavaScript</span>
+                    </div>
                 </div>
-                <span id="waveProgressText">0/3</span>
+                <div class="wave-progress-container">
+                    <div class="progress-label">
+                        <span>WAVE PROGRESS</span>
+                        <span id="waveProgressText">0/3</span>
+                    </div>
+                    <div class="wave-progress-bar">
+                        <div class="wave-progress-fill" id="waveFill"></div>
+                    </div>
+                </div>
+                <button class="combat-btn" id="startBtn">
+                    <span class="btn-glow"></span>
+                    <span class="btn-content">▶ INITIATE COMBAT</span>
+                </button>
             </div>
-            <button class="start-btn" id="startBtn">▶ INITIALIZE COMBAT</button>
         </div>
         
-        <!-- Leaderboard & Stats -->
-        <div class="leaderboard-panel">
-            <div class="leaderboard-header">
-                <span>🏆 DEVELOPER LEADERBOARD 🏆</span>
-                <button class="toggle-leaderboard" id="toggleLeaderboard">▼</button>
+        <!-- Leaderboard with Modern Design -->
+        <div class="leaderboard-modern">
+            <div class="leaderboard-header" id="toggleLeaderboard">
+                <div class="header-left">
+                    <span class="trophy-icon">🏆</span>
+                    <span>DEVELOPER LEADERBOARD</span>
+                    <span class="rank-badge">TOP 10</span>
+                </div>
+                <div class="header-right">
+                    <span class="toggle-icon">▼</span>
+                </div>
             </div>
             <div class="leaderboard-content" id="leaderboardContent">
                 <div class="leaderboard-list" id="leaderboardList"></div>
-                <button class="reset-leaderboard" id="resetLeaderboard">RESET RANKINGS</button>
+                <button class="reset-btn" id="resetLeaderboard">
+                    <span>🗑️ RESET RANKINGS</span>
+                </button>
             </div>
         </div>
     </div>
     
-    <!-- Game Over Modal -->
+    <!-- Game Over Modal with Neon Effect -->
     <div class="modal" id="gameOverModal">
-        <div class="modal-content terminal-modal">
-            <h2>💀 SYSTEM OVERLOAD 💀</h2>
-            <div class="final-stats">
-                <div>Wave <span id="finalWave">0</span> | Score <span id="finalScore">0</span></div>
-                <div>Bugs Squashed: <span id="finalBugs">0</span></div>
-                <div>Accuracy: <span id="finalAccuracy">0</span>%</div>
-            </div>
-            <div class="leaderboard-feedback" id="modalFeedback"></div>
-            <div class="modal-buttons">
-                <button class="modal-btn rematch-btn" id="rematchBtn">⚡ RETRY MISSION</button>
-                <button class="modal-btn close-btn" id="closeModalBtn">RETURN TO TERMINAL</button>
+        <div class="modal-backdrop"></div>
+        <div class="modal-container">
+            <div class="modal-glow"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="skull-icon">💀</div>
+                    <h2>SYSTEM OVERLOAD</h2>
+                    <div class="glitch-text">GAME OVER</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-icon">🌊</span>
+                        <span class="stat-label">WAVE</span>
+                        <span class="stat-number" id="finalWave">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🎯</span>
+                        <span class="stat-label">SCORE</span>
+                        <span class="stat-number" id="finalScore">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🐛</span>
+                        <span class="stat-label">BUGS</span>
+                        <span class="stat-number" id="finalBugs">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">📊</span>
+                        <span class="stat-label">ACCURACY</span>
+                        <span class="stat-number" id="finalAccuracy">0%</span>
+                    </div>
+                </div>
+                <div class="feedback-message" id="modalFeedback"></div>
+                <div class="modal-actions">
+                    <button class="action-btn primary" id="rematchBtn">
+                        <span>⚡ REMATCH</span>
+                    </button>
+                    <button class="action-btn secondary" id="closeModalBtn">
+                        <span>RETURN</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -150,4 +303,4 @@
     <script src="js/leaderboard.js"></script>
     <script src="js/game.js"></script>
 </body>
-</html>
+    </html>
