@@ -1,28 +1,18 @@
-// SYNTAX SURGE - Visual Effects System
+// SYNTAX SURGE v2.0 — Advanced Visual Effects System
 
-class EffectSystem {
+class ParticleSystem3D {
     constructor() {
-        this.particles = [];
-        this.canvas = null;
-        this.ctx = null;
-        this.initCanvas();
-    }
-    
-    initCanvas() {
-        this.canvas = document.createElement('canvas');
-        this.canvas.style.position = 'fixed';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.width = '100%';
-        this.canvas.style.height = '100%';
-        this.canvas.style.pointerEvents = 'none';
-        this.canvas.style.zIndex = '999';
-        document.body.appendChild(this.canvas);
+        this.canvas = document.getElementById('particleCanvas');
+        if (!this.canvas) return;
+        
         this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.particleCount = 100;
         
-        window.addEventListener('resize', () => this.resizeCanvas());
         this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
         
+        this.initParticles();
         this.animate();
     }
     
@@ -31,115 +21,17 @@ class EffectSystem {
         this.canvas.height = window.innerHeight;
     }
     
-    // Create damage effect (red particles)
-    damageEffect(x, y) {
-        for (let i = 0; i < 20; i++) {
+    initParticles() {
+        for (let i = 0; i < this.particleCount; i++) {
             this.particles.push({
-                x: x || window.innerWidth / 2,
-                y: y || window.innerHeight / 2,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 0.5) * 8 - 2,
-                life: 1,
-                color: `hsl(${Math.random() * 20 + 340}, 100%, 60%)`,
-                size: Math.random() * 4 + 2
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                radius: Math.random() * 2 + 1,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: (Math.random() - 0.5) * 0.5,
+                color: `hsl(${Math.random() * 60 + 180}, 100%, 60%)`,
+                alpha: Math.random() * 0.5 + 0.2
             });
-        }
-        
-        // Flash screen red
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.backgroundColor = 'rgba(255, 51, 102, 0.3)';
-        flash.style.pointerEvents = 'none';
-        flash.style.zIndex = '998';
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 150);
-    }
-    
-    // Create correct syntax effect (green particles)
-    correctEffect(x, y) {
-        for (let i = 0; i < 30; i++) {
-            this.particles.push({
-                x: x || window.innerWidth / 2,
-                y: y || window.innerHeight / 2,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10 - 3,
-                life: 1,
-                color: `hsl(${Math.random() * 40 + 80}, 100%, 60%)`,
-                size: Math.random() * 5 + 2
-            });
-        }
-        
-        // Flash screen green
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.backgroundColor = 'rgba(0, 255, 102, 0.2)';
-        flash.style.pointerEvents = 'none';
-        flash.style.zIndex = '998';
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 100);
-    }
-    
-    // Create bug defeat effect (explosion)
-    bugDefeatEffect(x, y) {
-        for (let i = 0; i < 50; i++) {
-            this.particles.push({
-                x: x || window.innerWidth / 2,
-                y: y || window.innerHeight / 2,
-                vx: (Math.random() - 0.5) * 15,
-                vy: (Math.random() - 0.5) * 15 - 5,
-                life: 1,
-                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-                size: Math.random() * 6 + 2
-            });
-        }
-        
-        // Screen shake
-        const container = document.querySelector('.game-container');
-        if (container) {
-            container.style.transform = 'translate(3px, 3px)';
-            setTimeout(() => container.style.transform = 'translate(-2px, -2px)', 50);
-            setTimeout(() => container.style.transform = 'translate(0, 0)', 100);
-        }
-    }
-    
-    // Create power-up activation effect
-    powerUpEffect(color) {
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.backgroundColor = color;
-        flash.style.pointerEvents = 'none';
-        flash.style.zIndex = '998';
-        flash.style.animation = 'fadeOut 0.5s forwards';
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 500);
-    }
-    
-    // Create combo burst effect
-    comboBurst(comboCount) {
-        if (comboCount % 5 === 0 && comboCount > 0) {
-            for (let i = 0; i < 15; i++) {
-                this.particles.push({
-                    x: window.innerWidth / 2,
-                    y: window.innerHeight / 2,
-                    vx: (Math.random() - 0.5) * 12,
-                    vy: (Math.random() - 0.5) * 12 - 4,
-                    life: 1,
-                    color: `hsl(${Math.random() * 60 + 30}, 100%, 60%)`,
-                    size: Math.random() * 5 + 2
-                });
-            }
         }
     }
     
@@ -148,95 +40,144 @@ class EffectSystem {
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.2; // gravity
-            p.life -= 0.02;
+        for (let p of this.particles) {
+            p.x += p.speedX;
+            p.y += p.speedY;
             
-            if (p.life <= 0 || p.y > this.canvas.height + 100) {
-                this.particles.splice(i, 1);
-                continue;
-            }
+            // Wrap around edges
+            if (p.x < 0) p.x = this.canvas.width;
+            if (p.x > this.canvas.width) p.x = 0;
+            if (p.y < 0) p.y = this.canvas.height;
+            if (p.y > this.canvas.height) p.y = 0;
             
-            this.ctx.globalAlpha = p.life;
-            this.ctx.fillStyle = p.color;
             this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.fillStyle = p.color;
+            this.ctx.globalAlpha = p.alpha;
             this.ctx.fill();
         }
         
         requestAnimationFrame(() => this.animate());
     }
-}
-
-// Code rain effect for background
-class CodeRain {
-    constructor() {
-        this.canvas = document.getElementById('codeRain');
-        if (!this.canvas) return;
-        
-        this.ctx = this.canvas.getContext('2d');
-        this.columns = [];
-        this.characters = '01abcdefghijklmnopqrstuvwxyz{}[]();:+-*/';
-        
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-        this.start();
-    }
     
-    resizeCanvas() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        this.initColumns();
-    }
-    
-    initColumns() {
-        const columnCount = Math.floor(this.canvas.width / 20);
-        this.columns = [];
-        for (let i = 0; i < columnCount; i++) {
-            this.columns.push({
-                x: i * 20,
-                y: Math.random() * this.canvas.height,
-                speed: 2 + Math.random() * 3,
-                chars: []
+    // Create explosion effect
+    explosion(x, y, color) {
+        const particles = [];
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: x || window.innerWidth / 2,
+                y: y || window.innerHeight / 2,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10 - 5,
+                life: 1,
+                color: color || `hsl(${Math.random() * 60 + 180}, 100%, 60%)`,
+                size: Math.random() * 4 + 2
             });
         }
-    }
-    
-    start() {
-        const draw = () => {
-            if (!this.ctx) return;
-            
-            this.ctx.fillStyle = 'rgba(10, 10, 15, 0.05)';
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            this.ctx.fillStyle = '#00ffcc';
-            this.ctx.font = '12px monospace';
-            
-            for (let col of this.columns) {
-                const char = this.characters[Math.floor(Math.random() * this.characters.length)];
-                this.ctx.fillText(char, col.x, col.y);
+        
+        const animateExplosion = () => {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2;
+                p.life -= 0.02;
                 
-                col.y += col.speed;
-                if (col.y > this.canvas.height) {
-                    col.y = 0;
+                if (p.life <= 0 || p.y > this.canvas.height + 100) {
+                    particles.splice(i, 1);
+                    continue;
                 }
+                
+                this.ctx.globalAlpha = p.life;
+                this.ctx.fillStyle = p.color;
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                this.ctx.fill();
             }
             
-            requestAnimationFrame(draw);
+            if (particles.length > 0) {
+                requestAnimationFrame(animateExplosion);
+            }
         };
         
-        draw();
+        animateExplosion();
+    }
+    
+    // Create damage flash
+    damageFlash() {
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.top = '0';
+        flash.style.left = '0';
+        flash.style.width = '100%';
+        flash.style.height = '100%';
+        flash.style.backgroundColor = 'rgba(255, 51, 102, 0.3)';
+        flash.style.pointerEvents = 'none';
+        flash.style.zIndex = '999';
+        flash.style.animation = 'fadeOut 0.3s forwards';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 300);
+    }
+    
+    // Create correct flash
+    correctFlash() {
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.top = '0';
+        flash.style.left = '0';
+        flash.style.width = '100%';
+        flash.style.height = '100%';
+        flash.style.backgroundColor = 'rgba(0, 255, 102, 0.2)';
+        flash.style.pointerEvents = 'none';
+        flash.style.zIndex = '999';
+        flash.style.animation = 'fadeOut 0.2s forwards';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 200);
+    }
+    
+    // Screen shake
+    screenShake(intensity = 5, duration = 200) {
+        const container = document.querySelector('.game-container');
+        if (!container) return;
+        
+        const originalTransform = container.style.transform;
+        const startTime = Date.now();
+        
+        const shake = () => {
+            const elapsed = Date.now() - startTime;
+            if (elapsed >= duration) {
+                container.style.transform = originalTransform;
+                return;
+            }
+            
+            const x = (Math.random() - 0.5) * intensity;
+            const y = (Math.random() - 0.5) * intensity;
+            container.style.transform = `translate(${x}px, ${y}px)`;
+            requestAnimationFrame(shake);
+        };
+        
+        shake();
     }
 }
 
-// Initialize effects when DOM loads
-let effectSystem = null;
-let codeRain = null;
+// Initialize particle system
+let particleSystem = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    effectSystem = new EffectSystem();
-    codeRain = new CodeRain();
+    particleSystem = new ParticleSystem3D();
+    
+    // Add fade-out animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 });
+
+// Export for use in game.js
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { particleSystem };
+}
