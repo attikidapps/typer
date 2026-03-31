@@ -1,6 +1,5 @@
-// SYNTAX SURGE - Core Game Engine
+// SYNTAX SURGE v2.0 - Core Game Engine with Upgraded UI Integration
 
-// Game State
 let gameState = {
     isActive: false,
     wave: 0,
@@ -27,7 +26,6 @@ let gameState = {
     }
 };
 
-// DOM Elements
 const elements = {
     waveNumber: document.getElementById('waveNumber'),
     scoreValue: document.getElementById('scoreValue'),
@@ -61,51 +59,47 @@ const elements = {
     leaderboardContent: document.getElementById('leaderboardContent')
 };
 
-// Helper Functions
 function updateUI() {
     elements.waveNumber.textContent = gameState.wave;
     elements.scoreValue.textContent = gameState.score;
     elements.comboValue.textContent = gameState.combo;
     
-    const playerHealthPercent = (gameState.playerHealth / 100) * 100;
-    elements.playerHealth.style.width = `${playerHealthPercent}%`;
+    const playerPercent = (gameState.playerHealth / 100) * 100;
+    elements.playerHealth.style.width = `${playerPercent}%`;
     elements.playerHealthText.textContent = gameState.playerHealth;
     
     if (gameState.currentBug) {
-        const bugHealthPercent = (gameState.currentBugHealth / gameState.currentBug.damage) * 100;
-        elements.bugHealth.style.width = `${Math.max(0, bugHealthPercent)}%`;
+        const bugPercent = (gameState.currentBugHealth / gameState.currentBug.damage) * 100;
+        elements.bugHealth.style.width = `${Math.max(0, bugPercent)}%`;
         elements.bugHealthText.textContent = gameState.currentBugHealth;
     }
     
-    // Update wave progress
     const waveProgress = (gameState.waveBugsDefeated / gameState.bugsPerWave) * 100;
     elements.waveFill.style.width = `${waveProgress}%`;
     elements.waveProgressText.textContent = `${gameState.waveBugsDefeated}/${gameState.bugsPerWave}`;
 }
 
 function updatePowerupUI() {
-    const slots = ['powerup1', 'powerup2', 'powerup3', 'powerup4'];
     const powerupNames = ['autoComplete', 'damageBoost', 'timeFreeze', 'syntaxShield'];
-    
     powerupNames.forEach((name, index) => {
-        const slot = document.getElementById(slots[index]);
         const statusEl = document.getElementById(`pu${index + 1}Status`);
+        const card = document.getElementById(`powerup${index + 1}`);
         const powerup = gameState.powerups[name];
         
         if (powerup.unlocked) {
             if (powerup.active) {
                 statusEl.textContent = `ACTIVE (${Math.ceil(powerup.remaining)}s)`;
                 statusEl.style.color = '#00ff66';
-                slot.classList.add('active');
+                card.classList.add('active');
             } else {
-                statusEl.textContent = 'Ready';
+                statusEl.textContent = 'READY';
                 statusEl.style.color = '#ffaa33';
-                slot.classList.remove('active');
+                card.classList.remove('active');
             }
         } else {
-            statusEl.textContent = `Locked (Wave ${(index + 1) * 3})`;
+            statusEl.textContent = `LOCKED (Wave ${(index + 1) * 3})`;
             statusEl.style.color = '#666';
-            slot.classList.remove('active');
+            card.classList.remove('active');
         }
     });
 }
@@ -135,16 +129,15 @@ function activatePowerup(powerupName) {
     if (!powerup.unlocked || powerup.active) return false;
     
     powerup.active = true;
-    powerup.remaining = 10; // 10 seconds duration
+    powerup.remaining = 10;
     
-    if (effectSystem) {
-        effectSystem.powerUpEffect('rgba(0, 255, 204, 0.3)');
+    if (particleSystem) {
+        particleSystem.explosion(null, null, '#00ffff');
     }
     
     showFeedback(`✨ ${powerupName.toUpperCase()} ACTIVATED! ✨`, 'correct');
     updatePowerupUI();
     
-    // Auto-deactivate after duration
     setTimeout(() => {
         if (powerup.active) {
             powerup.active = false;
@@ -157,14 +150,17 @@ function activatePowerup(powerupName) {
 }
 
 function showFeedback(message, type) {
-    elements.feedback.textContent = message;
-    elements.feedback.className = type;
+    const terminalLine = document.createElement('div');
+    terminalLine.className = `terminal-line ${type === 'correct' ? 'correct' : type === 'incorrect' ? 'incorrect' : ''}`;
+    terminalLine.innerHTML = `> ${message}`;
+    elements.feedback.innerHTML = '';
+    elements.feedback.appendChild(terminalLine);
+    
     setTimeout(() => {
-        if (elements.feedback.textContent === message) {
-            elements.feedback.textContent = '';
-            elements.feedback.className = '';
+        if (elements.feedback.firstChild === terminalLine) {
+            elements.feedback.innerHTML = '<div class="terminal-line">> System ready</div>';
         }
-    }, 2000);
+    }, 3000);
 }
 
 function takeDamage(amount) {
@@ -176,17 +172,15 @@ function takeDamage(amount) {
     gameState.playerHealth = Math.max(0, gameState.playerHealth - amount);
     updateUI();
     
-    if (effectSystem) {
-        effectSystem.damageEffect();
+    if (particleSystem) {
+        particleSystem.damageFlash();
+        particleSystem.screenShake(8, 200);
     }
     
-    // Visual feedback
     document.querySelector('.bug-arena').classList.add('damage-flash');
     setTimeout(() => document.querySelector('.bug-arena').classList.remove('damage-flash'), 200);
     
-    if (gameState.playerHealth <= 0) {
-        endGame();
-    }
+    if (gameState.playerHealth <= 0) endGame();
 }
 
 function dealDamageToBug(damage) {
@@ -194,11 +188,9 @@ function dealDamageToBug(damage) {
     updateUI();
     
     if (gameState.currentBugHealth <= 0) {
-        // Bug defeated!
         gameState.waveBugsDefeated++;
         gameState.stats.totalBugsSquashed++;
         
-        // Calculate score
         const baseScore = gameState.currentBug.damage * 10;
         const comboBonus = gameState.combo * 5;
         const waveBonus = gameState.wave * 10;
@@ -213,14 +205,13 @@ function dealDamageToBug(damage) {
         
         updateUI();
         
-        if (effectSystem) {
-            effectSystem.bugDefeatEffect();
-            effectSystem.comboBurst(gameState.combo);
+        if (particleSystem) {
+            particleSystem.explosion();
+            particleSystem.correctFlash();
         }
         
         showFeedback(`✅ BUG SQUASHED! +${pointsEarned} XP (${gameState.combo}x COMBO!)`, 'correct');
         
-        // Check if wave is complete
         if (gameState.waveBugsDefeated >= gameState.bugsPerWave) {
             completeWave();
         } else {
@@ -233,43 +224,28 @@ function completeWave() {
     gameState.wave++;
     gameState.waveBugsDefeated = 0;
     gameState.bugsPerWave = Math.min(3 + Math.floor(gameState.wave / 5), 8);
-    
-    // Heal player slightly on wave completion
     gameState.playerHealth = Math.min(100, gameState.playerHealth + 10);
     
-    // Update language based on wave
-    if (gameState.wave < 5) {
-        elements.currentLanguage.textContent = 'JavaScript';
-    } else if (gameState.wave < 10) {
-        elements.currentLanguage.textContent = 'Python';
-    } else if (gameState.wave < 15) {
-        elements.currentLanguage.textContent = 'Java';
-    } else if (gameState.wave < 20) {
-        elements.currentLanguage.textContent = 'C++';
-    } else {
-        elements.currentLanguage.textContent = 'Rust';
-    }
+    if (gameState.wave < 5) elements.currentLanguage.textContent = 'JavaScript';
+    else if (gameState.wave < 10) elements.currentLanguage.textContent = 'Python';
+    else if (gameState.wave < 15) elements.currentLanguage.textContent = 'Java';
+    else if (gameState.wave < 20) elements.currentLanguage.textContent = 'C++';
+    else elements.currentLanguage.textContent = 'Rust';
     
     unlockPowerups();
     updateUI();
     showFeedback(`🎉 WAVE ${gameState.wave} COMPLETE! +10 HP 🎉`, 'correct');
-    
     spawnNextBug();
 }
 
 function spawnNextBug() {
-    // Clear any existing cast interval
-    if (gameState.castInterval) {
-        clearInterval(gameState.castInterval);
-    }
+    if (gameState.castInterval) clearInterval(gameState.castInterval);
     
-    // Determine current language based on wave
     let language = 'javascript';
     if (gameState.wave >= 20) language = 'rust';
     else if (gameState.wave >= 15) language = 'cpp';
     else if (gameState.wave >= 10) language = 'java';
     else if (gameState.wave >= 5) language = 'python';
-    else language = 'javascript';
     
     const bug = getBugForWave(language, gameState.wave);
     if (!bug) return;
@@ -277,45 +253,31 @@ function spawnNextBug() {
     gameState.currentBug = bug;
     gameState.currentBugHealth = bug.damage;
     
-    // Update UI
     elements.bugName.textContent = bug.name;
-    elements.bugLanguage.textContent = bug.languageName.toUpperCase();
+    elements.bugLanguage.innerHTML = `<span class="lang-badge">${bug.languageName.toUpperCase()}</span>`;
     elements.codeSnippet.textContent = bug.syntax;
     
-    // Set cast timer
     gameState.castTimeRemaining = bug.castTime;
     updateCastBar();
     
-    // Start cast timer countdown
     gameState.castInterval = setInterval(() => {
         if (!gameState.isActive) return;
-        
-        if (gameState.powerups.timeFreeze.active) {
-            // Time freeze pauses cast timer
-            return;
-        }
+        if (gameState.powerups.timeFreeze.active) return;
         
         gameState.castTimeRemaining -= 0.1;
         updateCastBar();
         
         if (gameState.castTimeRemaining <= 0) {
-            // Bug attacks!
             clearInterval(gameState.castInterval);
-            const damage = bug.damage;
-            takeDamage(damage);
-            showFeedback(`💥 ${bug.name} attacks for ${damage} damage!`, 'incorrect');
-            
-            if (gameState.playerHealth > 0) {
-                spawnNextBug();
-            }
+            takeDamage(bug.damage);
+            showFeedback(`💥 ${bug.name} attacks for ${bug.damage} damage!`, 'incorrect');
+            if (gameState.playerHealth > 0) spawnNextBug();
         }
     }, 100);
     
-    // Clear input
     elements.userInput.value = '';
     elements.userInput.focus();
     
-    // Auto-complete power-up
     if (gameState.powerups.autoComplete.active) {
         elements.userInput.value = bug.syntax;
         showFeedback('🔮 AUTO-COMPLETE ACTIVE!', 'correct');
@@ -339,29 +301,21 @@ function executeSyntax() {
     
     if (isValid) {
         gameState.stats.totalCorrect++;
-        
-        // Calculate damage
         let damage = gameState.currentBug.damage;
         if (gameState.powerups.damageBoost.active) {
             damage *= 2;
             showFeedback('⚔️ DAMAGE BOOST ACTIVE! 2x DAMAGE!', 'correct');
         }
-        
         dealDamageToBug(damage);
         
-        if (effectSystem) {
-            effectSystem.correctEffect();
-        }
+        if (particleSystem) particleSystem.correctFlash();
         
-        // Clear cast interval for current bug
         if (gameState.castInterval) {
             clearInterval(gameState.castInterval);
             gameState.castInterval = null;
         }
-        
         elements.userInput.value = '';
     } else {
-        // Incorrect syntax - penalty
         gameState.combo = 0;
         updateUI();
         takeDamage(5);
@@ -372,7 +326,6 @@ function executeSyntax() {
 }
 
 function startGame() {
-    // Reset game state
     gameState = {
         isActive: true,
         wave: 1,
@@ -399,43 +352,34 @@ function startGame() {
         }
     };
     
-    // Enable UI
     elements.userInput.disabled = false;
     elements.submitBtn.disabled = false;
     elements.startBtn.disabled = true;
-    elements.startBtn.textContent = '⚔️ IN COMBAT ⚔️';
+    elements.startBtn.querySelector('.btn-content').textContent = '⚔️ IN COMBAT ⚔️';
     
     updateUI();
     updatePowerupUI();
-    
-    // Spawn first bug
     spawnNextBug();
-    
     showFeedback('⚔️ COMBAT INITIALIZED! TYPE THE EXACT SYNTAX TO ATTACK! ⚔️', 'correct');
 }
 
 function endGame() {
     gameState.isActive = false;
-    
-    if (gameState.castInterval) {
-        clearInterval(gameState.castInterval);
-    }
+    if (gameState.castInterval) clearInterval(gameState.castInterval);
     
     elements.userInput.disabled = true;
     elements.submitBtn.disabled = true;
     elements.startBtn.disabled = false;
-    elements.startBtn.textContent = '▶ INITIALIZE COMBAT';
+    elements.startBtn.querySelector('.btn-content').textContent = '▶ INITIATE COMBAT';
     
     const accuracy = gameState.stats.totalAttempts > 0 
-        ? (gameState.stats.totalCorrect / gameState.stats.totalAttempts) * 100 
-        : 0;
+        ? (gameState.stats.totalCorrect / gameState.stats.totalAttempts) * 100 : 0;
     
     elements.finalWave.textContent = gameState.wave;
     elements.finalScore.textContent = gameState.score;
     elements.finalBugs.textContent = gameState.stats.totalBugsSquashed;
     elements.finalAccuracy.textContent = Math.round(accuracy);
     
-    // Check high score
     const rank = leaderboard.getRank(gameState.score);
     let feedbackText = '';
     
@@ -446,13 +390,7 @@ function endGame() {
         feedbackText = '✨ TOP 5 SCORE! ✨';
         promptForHighScore(gameState.score, gameState.wave, gameState.stats.totalBugsSquashed, accuracy);
     } else {
-        const topScores = leaderboard.getTopScores();
-        const lowestTopScore = topScores[topScores.length - 1]?.score || 0;
-        if (gameState.score > lowestTopScore) {
-            feedbackText = `🎯 You reached Wave ${gameState.wave} with ${gameState.score} points!`;
-        } else {
-            feedbackText = `Wave ${gameState.wave} | Score ${gameState.score} | Accuracy ${Math.round(accuracy)}%`;
-        }
+        feedbackText = `Wave ${gameState.wave} | Score ${gameState.score} | Accuracy ${Math.round(accuracy)}%`;
     }
     
     elements.modalFeedback.textContent = feedbackText;
@@ -465,45 +403,30 @@ function rematch() {
     startGame();
 }
 
-// Power-up hotkeys
+// Event Listeners
 document.addEventListener('keydown', (e) => {
     if (!gameState.isActive) return;
-    
-    switch(e.key) {
-        case '1':
-            activatePowerup('autoComplete');
-            break;
-        case '2':
-            activatePowerup('damageBoost');
-            break;
-        case '3':
-            activatePowerup('timeFreeze');
-            break;
-        case '4':
-            activatePowerup('syntaxShield');
-            break;
-        case 'Enter':
-            if (document.activeElement === elements.userInput) {
-                e.preventDefault();
-                executeSyntax();
-            }
-            break;
+    if (e.key === '1') activatePowerup('autoComplete');
+    if (e.key === '2') activatePowerup('damageBoost');
+    if (e.key === '3') activatePowerup('timeFreeze');
+    if (e.key === '4') activatePowerup('syntaxShield');
+    if (e.key === 'Enter' && document.activeElement === elements.userInput) {
+        e.preventDefault();
+        executeSyntax();
     }
 });
 
-// Event Listeners
 elements.startBtn.addEventListener('click', startGame);
 elements.submitBtn.addEventListener('click', executeSyntax);
 elements.rematchBtn.addEventListener('click', rematch);
-elements.closeModalBtn.addEventListener('click', () => {
-    elements.gameOverModal.classList.remove('active');
-});
+elements.closeModalBtn.addEventListener('click', () => elements.gameOverModal.classList.remove('active'));
+
 elements.toggleLeaderboard.addEventListener('click', () => {
     elements.leaderboardContent.classList.toggle('collapsed');
-    elements.toggleLeaderboard.textContent = elements.leaderboardContent.classList.contains('collapsed') ? '▶' : '▼';
+    elements.toggleLeaderboard.querySelector('.toggle-icon').textContent = 
+        elements.leaderboardContent.classList.contains('collapsed') ? '▶' : '▼';
 });
 
-// Initialize leaderboard display
 leaderboard.displayLeaderboard('leaderboardList');
 
-console.log('🔥 SYNTAX SURGE — Developer Combat Arena loaded! 🔥');
+console.log('🔥 SYNTAX SURGE v2.0 — Developer Combat Arena loaded! 🔥');
